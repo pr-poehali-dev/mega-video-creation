@@ -2,10 +2,31 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import { toast } from '@/components/ui/use-toast';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+
+  const paymentMethods = [
+    { name: 'PayPal', icon: '💳', address: 'zoid.ketevan@gmail.com', note: 'Use family and friends', color: 'from-blue-500 to-blue-600' },
+    { name: 'Bitcoin', icon: '₿', address: '1LHwjpMPtuhzNjUp6nXMXaFmu5EGinvWNY', color: 'from-orange-500 to-orange-600' },
+    { name: 'USDT', icon: '₮', address: 'TXHWYwxR2Exj9MCn1wCLTfhi8sMvKUN1bj', color: 'from-green-500 to-green-600' },
+    { name: 'Ethereum', icon: 'Ξ', address: 'TXHWYwxR2Exj9MCn1wCLTfhi8sMvKUN1bj', color: 'from-purple-500 to-purple-600' }
+  ];
+
+  const copyToClipboard = (text: string, method: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: 'Скопировано!', description: `Адрес ${method} скопирован в буфер обмена` });
+  };
+
+  const handlePayment = (plan: any) => {
+    setSelectedPlan(plan);
+    setPaymentOpen(true);
+  };
 
   const scrollToSection = (id: string) => {
     setActiveSection(id);
@@ -237,6 +258,7 @@ const Index = () => {
                     ))}
                   </ul>
                   <Button 
+                    onClick={() => handlePayment(plan)}
                     className={`w-full ${
                       plan.popular 
                         ? 'bg-gradient-to-r from-secondary to-accent hover:opacity-90' 
@@ -251,6 +273,62 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <a 
+        href="https://t.me/tokare2" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform animate-float"
+      >
+        <Icon name="MessageCircle" size={28} className="text-white" />
+      </a>
+
+      <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Оплата тарифа {selectedPlan?.name}</DialogTitle>
+            <DialogDescription>
+              Выберите способ оплаты ${selectedPlan?.price}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid md:grid-cols-2 gap-4 mt-4">
+            {paymentMethods.map((method, idx) => (
+              <Card key={idx} className="overflow-hidden border-border/50 hover:border-primary/50 transition-all">
+                <CardHeader className={`bg-gradient-to-r ${method.color} text-white`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{method.icon}</span>
+                    <CardTitle className="text-white">{method.name}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="mb-3">
+                    <p className="text-xs text-muted-foreground mb-1">Адрес для оплаты:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-xs bg-muted p-2 rounded break-all">{method.address}</code>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => copyToClipboard(method.address, method.name)}
+                        className="flex-shrink-0"
+                      >
+                        <Icon name="Copy" size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                  {method.note && (
+                    <p className="text-xs text-amber-500 font-medium mt-2">⚠️ {method.note}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="mt-4 p-4 bg-muted rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              После оплаты свяжитесь с нами в Telegram с подтверждением платежа
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <footer className="py-12 px-4 border-t border-border">
         <div className="container mx-auto text-center">
